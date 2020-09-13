@@ -27,14 +27,16 @@ if os.name == 'nt':  # Windows
     https://sourceforge.net/p/ngspice/discussion/133842/thread/1cece652/#4e32/5ab8/9027
     On Windows, when environment variable SPICE_LIB_DIR is empty, ngspice
     looks in `C:\Spice64\share\ngspice\scripts`.  If the variable is not empty
-    it tries `%SPICE_LIB_DIR%\scripts\spinit`
+    it tries `%SPICE_LIB_DIR%\scripts\spint`
     """
+    if 'SPICE_DIR' in os.environ:
+        spice_path = os.environ["SPICE_DIR"]
 
     if 'SPICE_LIB_DIR' not in os.environ:
         os.environ['SPICE_LIB_DIR'] = os.path.join(spice_path, 'share',
                                                    'ngspice')
-    os.chdir(os.path.join(spice_path, 'bin_dll'))
-    spice = CDLL('ngspice')
+
+    spice = CDLL(os.path.join(spice_path, 'bin', 'ngspice'))
     os.chdir(curr_dir_before)
 else:  # Linux, etc.
     try:
