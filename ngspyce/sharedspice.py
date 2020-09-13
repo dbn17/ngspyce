@@ -35,8 +35,8 @@ if os.name == 'nt':  # Windows
 
     if 'SPICE_LIB_DIR' not in os.environ:
         os.environ['SPICE_LIB_DIR'] = os.path.join(spice_path, 'share', 'ngspice')
-    print(os.environ["SPICE_LIB_DIR"])
-    spice = CDLL(os.path.join(spice_path, 'bin', 'ngspice'))
+
+    spice = CDLL(os.path.join(spice_path, 'bin-dll', 'ngspice'))
     os.chdir(curr_dir_before)
 else:  # Linux, etc.
     try:
@@ -54,8 +54,10 @@ def printfcn(output, _id, _ret):
     global captured_output
     prefix, _, content = output.decode('ascii').partition(' ')
     if prefix == 'stderr':
+        print("ERR: {}".format(content))
         logger.error(content)
     else:
+        print("STD: {}".format(content))
         captured_output.append(content)
     return 0
 
@@ -65,6 +67,7 @@ def statfcn(status, _id, _ret):
     """
     Callback for libngspice to report simulation status like 'tran 5%'
     """
+    print("STAT: {}".format(status.decode('ascii')))
     logger.debug(status.decode('ascii'))
     return 0
 
@@ -72,11 +75,13 @@ def statfcn(status, _id, _ret):
 @CFUNCTYPE(c_int, c_int, c_bool, c_bool, c_int, c_void_p)
 def controlled_exit(exit_status, immediate_unloading, requested_exit,
                     libngspice_id, ret):
-    logger.debug('ControlledExit',
-                 dict(exit_status=exit_status,
+    r = dict(exit_status=exit_status,
                       immediate_unloading=immediate_unloading,
                       requested_exit=requested_exit,
-                      libngspice_id=libngspice_id, ret=ret))
+                      libngspice_id=libngspice_id, ret=ret)
+    print("EXIT: {}".format(str(r)))
+    logger.debug('ControlledExit',
+                 r)
 
 
 # typedef struct vecvalues {
